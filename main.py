@@ -57,13 +57,13 @@ print("\nFirst 5 entries of predicted humidity data after the real data:")
 print(predicted_hum_after_real[['ds', 'yhat']].head(5))
 
 # Optional: show plots
-model_temp.plot(forecast_temp)
-plt.title("Temperature Forecast (24h)")
-plt.grid(True)
-plt.show()
-
-model_hum.plot(forecast_hum)
-plt.title("Humidity Forecast (24h)")
-plt.grid(True)
-plt.show()
+# model_temp.plot(forecast_temp)
+# plt.title("Temperature Forecast (24h)")
+# plt.grid(True)
+# plt.show()
+#
+# model_hum.plot(forecast_hum)
+# plt.title("Humidity Forecast (24h)")
+# plt.grid(True)
+# plt.show()
 
