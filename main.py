@@ -49,6 +49,29 @@ last_real_timestamp = df['created_at'].max().tz_localize(None)
 predicted_temp_after_real = forecast_temp[forecast_temp['ds'] > last_real_timestamp]
 predicted_hum_after_real = forecast_hum[forecast_hum['ds'] > last_real_timestamp]
 
+# Calculate hourly averages for the last 5 hours of real data (exclude current hour if incomplete)
+last_5_hours_mask = df['created_at'] >= (df['created_at'].max() - pd.Timedelta(hours=5))
+last_5_hours_real = (
+    df.loc[last_5_hours_mask]
+    .set_index('created_at')
+    .resample('h')
+    .mean(numeric_only=True)
+)
+
+# Drop the current hour if it is incomplete
+if last_5_hours_real.index[-1] > df['created_at'].max().floor('h'):
+    last_5_hours_real = last_5_hours_real.iloc[:-1]
+
+# Calculate hourly averages for the first 5 hours of predicted data
+predicted_temp_after_real = predicted_temp_after_real.copy()
+predicted_temp_after_real.loc[:, 'hour'] = predicted_temp_after_real['ds'].dt.floor('h')
+
+predicted_hum_after_real = predicted_hum_after_real.copy()
+predicted_hum_after_real.loc[:, 'hour'] = predicted_hum_after_real['ds'].dt.floor('h')
+
+hourly_avg_temp_predicted = predicted_temp_after_real.groupby('hour')['yhat'].mean().head(5)
+hourly_avg_hum_predicted = predicted_hum_after_real.groupby('hour')['yhat'].mean().head(5)
+
 # Print last 5 entries of real data
 print("\nLast 5 entries of real data:")
 print(df[['created_at', 'temperature', 'humidity']].tail(5))
@@ -59,6 +82,17 @@ print(predicted_temp_after_real[['ds', 'yhat']].head(5))
 
 print("\nFirst 5 entries of predicted humidity data after the real data:")
 print(predicted_hum_after_real[['ds', 'yhat']].head(5))
+
+# Print hourly averages for the last 5 hours of real data
+print("\nHourly averages of real data (last 5 hours):")
+print(last_5_hours_real[['temperature', 'humidity']])
+
+# Print hourly averages for the first 5 hours of predicted data
+print("\nHourly averages of predicted temperature data (first 5 hours):")
+print(hourly_avg_temp_predicted)
+
+print("\nHourly averages of predicted humidity data (first 5 hours):")
+print(hourly_avg_hum_predicted)
 
 # Optional: show plots
 model_temp.plot(forecast_temp)
