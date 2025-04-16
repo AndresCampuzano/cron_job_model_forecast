@@ -10,9 +10,10 @@ load_dotenv()
 
 # Constants
 API_URL = os.getenv("API_URL")
+CITY_ID = os.getenv("CITY_ID")
 
 # 1. Fetch data
-response = requests.get(API_URL)
+response = requests.get(f"{API_URL}/api/weather?city_id={CITY_ID}&hourly_average=true")
 response.raise_for_status()
 data = response.json()
 
@@ -56,6 +57,24 @@ print(predicted_temp_after_real[['ds', 'yhat']].head(5))
 print("\nFirst 5 entries of predicted humidity data after the real data:")
 print(predicted_hum_after_real[['ds', 'yhat']].head(5))
 
+# 6. Prepare data for POST request
+predictions = []
+for temp, hum in zip(predicted_temp_after_real.itertuples(), predicted_hum_after_real.itertuples()):
+    predictions.append({
+        "city_id": CITY_ID,
+        "temperature": round(temp.yhat, 1),
+        "humidity": round(hum.yhat, 1),
+        "forecast_for": temp.ds.strftime("%Y-%m-%dT%H:%M:%SZ")
+    })
+
+# 7. Send POST request
+post_url = f"{API_URL}/api/predictions"
+response = requests.post(post_url, json=predictions)
+if response.status_code == 200:
+    print("\nPredictions successfully sent to the server.")
+else:
+    print(f"\nFailed to send predictions. Status code: {response.status_code}, Response: {response.text}")
+
 # Optional: show plots
 # model_temp.plot(forecast_temp)
 # plt.title("Temperature Forecast (24h)")
@@ -66,4 +85,3 @@ print(predicted_hum_after_real[['ds', 'yhat']].head(5))
 # plt.title("Humidity Forecast (24h)")
 # plt.grid(True)
 # plt.show()
-
