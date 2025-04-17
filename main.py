@@ -46,6 +46,9 @@ last_real_timestamp = df['hour'].max()
 predicted_temp_after_real = forecast_temp[forecast_temp['ds'] > last_real_timestamp]
 predicted_hum_after_real = forecast_hum[forecast_hum['ds'] > last_real_timestamp]
 
+# Clamp predicted humidity values between 0 and 99
+predicted_hum_after_real['yhat'] = predicted_hum_after_real['yhat'].clip(lower=0, upper=99)
+
 # Print last 5 entries of real data
 print("\nLast 5 entries of real data:")
 print(df[['hour', 'temperature', 'humidity']].tail(5))
@@ -85,3 +88,4 @@ else:
 # plt.title("Humidity Forecast (24h)")
 # plt.grid(True)
 # plt.show()
+
